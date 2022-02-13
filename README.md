@@ -3,6 +3,9 @@
 ## Descriptions
 - Extreme Battery Saver app by Google Inc.
 
+## Screenshots
+- https://t.me/androidryukimods/405
+
 ## Requirements
 - Android 11 or above
 - Magisk installed
