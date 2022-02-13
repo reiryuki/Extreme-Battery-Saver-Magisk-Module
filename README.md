@@ -4,6 +4,7 @@
 - Extreme Battery Saver app by Google Inc.
 
 ## Requirements
+- Android 11 or above
 - Magisk installed
 
 ## Installation Guide
