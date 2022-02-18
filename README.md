@@ -7,8 +7,10 @@
 - https://t.me/androidryukimods/405
 
 ## Requirements
-- Android 11 or above
+- Android 11 and up
 - Magisk installed
+- Any AOSP Signatured ROM to grant android.permission.SUSPEND_APPS
+- Disabled Android Signature Verification for non-AOSP Signatured ROM to grant android.permission.SUSPEND_APPS
 
 ## Installation Guide
 - Install the module via Magisk Manager or recovery
@@ -19,7 +21,8 @@
 - If you don't do above, it will be closed immediately.
 
 ## Credits and Contributors
-- Android Ryuki Mods Discussions Team
+- t.me/androidryukimodsdiscussions
+- t.me/androidappsportdevelopment
 
 ## Thanks for Donations
 - https://t.me/androidryukimodsdiscussions/2619
