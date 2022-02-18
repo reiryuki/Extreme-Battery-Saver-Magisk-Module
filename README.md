@@ -21,8 +21,8 @@
 - If you don't do above, issues will be closed immediately.
 
 ## Credits and Contributors
-- t.me/androidryukimodsdiscussions
-- t.me/androidappsportdevelopment
+- https://t.me/androidryukimodsdiscussions
+- https://t.me/androidappsportdevelopment
 
 ## Thanks for Donations
 - https://t.me/androidryukimodsdiscussions/2619
