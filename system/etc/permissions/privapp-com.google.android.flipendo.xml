@@ -9,7 +9,7 @@
         <permission name="android.permission.REAL_GET_TASKS"/>
         <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
         <permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND"/>
-        <!-- For Android 11 and bellow -->
+        <!-- Android 11 and bellow -->
         <permission name="android.permission.INTERACT_ACROSS_PROFILES"/>
     </privapp-permissions>
 </permissions>
