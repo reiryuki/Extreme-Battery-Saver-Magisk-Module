@@ -2,6 +2,7 @@
 
 ## Descriptions
 - Extreme Battery Saver app by Google Inc.
+- Extreme Battery Saver can only be working if android.permission.SUSPEND_APPS is granted correctly. It will pause your apps while enabling built-in standar AOSP battery saver.
 
 ## Sources
 - apkmirror.com
