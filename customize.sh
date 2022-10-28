@@ -218,7 +218,7 @@ ui_print " "
 # check
 PKG=com.google.android.flipendo
 NAME=android.permission.SUSPEND_APPS
-check_permission
+#check_permission
 
 
 
