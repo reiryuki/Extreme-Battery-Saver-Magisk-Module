@@ -1,3 +1,8 @@
+# boot mode
+if [ "$BOOTMODE" != true ]; then
+  abort "- Please flash via Magisk Manager only!"
+fi
+
 # space
 if [ "$BOOTMODE" == true ]; then
   ui_print " "
@@ -37,7 +42,7 @@ ui_print " MagiskVersionCode=$MAGISK_VER_CODE"
 ui_print " "
 
 # sdk
-NUM=30
+NUM=28
 if [ "$API" -lt $NUM ]; then
   ui_print "! Unsupported SDK $API."
   ui_print "  You have to upgrade your Android version"
@@ -182,6 +187,38 @@ done
 # hide
 APP="`ls $MODPATH/system/priv-app` `ls $MODPATH/system/app`"
 hide_oat
+
+# function
+check_permission() {
+ui_print "- Checking $NAME"
+ui_print "  of $PKG..."
+if [ "$BOOTMODE" == true ]\
+&& ! pm list package | grep -Eq $PKG; then
+  RES=`pm install -g -i com.android.vending $PKG`
+  if ! pm list package | grep -Eq $PKG; then
+    ui_print "  ! Failed."
+    ui_print "    Maybe insufficient storage."
+    abort
+  fi
+else
+  RES=
+fi
+if [ "$BOOTMODE" == true ]\
+&& ! dumpsys package $PKG | grep -Eq "$NAME: granted=true"; then
+  ui_print "  ! You need to disable your Android Signature Verification"
+  ui_print "    first to use this module."
+  abort
+fi
+if [ "$RES" == Success ]; then
+  RES=`pm uninstall $PKG`
+fi
+ui_print " "
+}
+
+# check
+PKG=com.google.android.flipendo
+NAME=android.permission.SUSPEND_APPS
+check_permission
 
 
 
