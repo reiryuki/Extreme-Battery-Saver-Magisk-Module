@@ -12,7 +12,7 @@
 - https://t.me/androidryukimods/418
 
 ## Requirements
-- Android 9 and up
+- Android 11 and up
 - Magisk installed
 - Any AOSP Signatured ROM to grant android.permission.SUSPEND_APPS
 - Disabled Android Signature Verification for non-AOSP Signatured ROM to grant android.permission.SUSPEND_APPS. Tap here: https://t.me/androidryukimodsdiscussions/58331
