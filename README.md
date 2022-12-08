@@ -1,11 +1,11 @@
 # Extreme Battery Saver Magisk Module
 
 ## Descriptions
-- Extreme Battery Saver app by Google Inc.
+- Extreme Battery Saver app by Google LLC
 - Extreme Battery Saver can only be working if android.permission.SUSPEND_APPS is granted correctly. It will pause your apps while enabling built-in standar AOSP battery saver.
 
 ## Sources
-- apkmirror.com com.google.android.flipendo by Google Inc.
+- apkmirror.com com.google.android.flipendo by Google LLC
 
 ## Screenshots
 - https://t.me/androidryukimods/405
