@@ -2,5 +2,3 @@
 <config>
     <hidden-api-whitelisted-app package="com.google.android.flipendo"/>
 </config>
-
-
