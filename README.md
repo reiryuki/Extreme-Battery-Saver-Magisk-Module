@@ -18,7 +18,7 @@
 - Disabled Android Signature Verification for non-AOSP Signatured ROM to grant android.permission.SUSPEND_APPS. Tap here: https://t.me/androidryukimodsdiscussions/58331
 
 ## Installation Guide & Download Link
-- Install this module https://www.pling.com/p/1707806/ via Magisk Manager or recovery
+- Install this module https://www.pling.com/p/1707806/ via Magisk app or recovery
 - Reboot
 - Enable your built-in battery saver (standar AOSP battery saver)
 - Tap the notification that appears to enable the Extreme Battery Saver (your apps will be paused)
