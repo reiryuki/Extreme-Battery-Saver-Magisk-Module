@@ -13,5 +13,3 @@
         <permission name="android.permission.INTERACT_ACROSS_PROFILES"/>
     </privapp-permissions>
 </permissions>
-
-
