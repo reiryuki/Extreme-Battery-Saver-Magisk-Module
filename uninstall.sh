@@ -1,6 +1,10 @@
 mount -o rw,remount /data
-MODPATH=${0%/*}
-MODID=`echo "$MODPATH" | sed 's|/data/adb/modules/||'`
+if [ ! "$MODPATH" ]; then
+  MODPATH=${0%/*}
+fi
+if [ ! "$MODID" ]; then
+  MODID=`echo "$MODPATH" | sed 's|/data/adb/modules/||' | sed 's|/data/adb/modules_update/||'`
+fi
 APP="`ls $MODPATH/system/priv-app` `ls $MODPATH/system/app`"
 for APPS in $APP; do
   rm -f `find /data/system/package_cache -type f -name *$APPS*`
