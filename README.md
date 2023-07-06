@@ -5,7 +5,7 @@
 - Extreme Battery Saver can only be working if android.permission.SUSPEND_APPS is granted correctly. It will pause your apps while enabling built-in standar AOSP battery saver.
 
 ## Sources
-- apkmirror.com com.google.android.flipendo by Google LLC
+- https://apkmirror.com com.google.android.flipendo by Google LLC
 
 ## Screenshots
 - https://t.me/androidryukimods/405
@@ -13,21 +13,22 @@
 
 ## Requirements
 - Android 11 and up
-- Magisk installed
+- Magisk or KernelSU installed
 - Any AOSP signatured ROM to grant android.permission.SUSPEND_APPS
 - Disabled Android Signature Verification for non-AOSP Signatured ROM to grant android.permission.SUSPEND_APPS. Tap here: https://t.me/androidryukimodsdiscussions/58331
 
 ## Installation Guide & Download Link
-- Install this module https://www.pling.com/p/1707806/ via Magisk app or recovery
+- Install this module https://www.pling.com/p/1707806/ via Magisk app or KernelSU app or Recovery if Magisk installed
 - Reboot
+- If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot after
+- If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot after
 - Enable your built-in battery saver (standar AOSP battery saver)
 - Tap the notification that appears to enable the Extreme Battery Saver (your apps will be paused)
 
 ## Tested on
 - Android 12 AncientOS ROM
 - Android 12.1 Nusantara ROM
-- Android 13 Nusantara ROM
-- Android 13 AOSP ROM
+- Android 13 Nusantara ROM, AOSP ROM, & CrDroid ROM
 
 ## Optionals
 - https://t.me/androidryukimodsdiscussions/60861

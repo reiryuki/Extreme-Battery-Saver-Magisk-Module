@@ -4,40 +4,18 @@ if [ "$BOOTMODE" != true ]; then
 fi
 
 # space
-if [ "$BOOTMODE" == true ]; then
+ui_print " "
+
+# log
+if [ "$BOOTMODE" != true ]; then
+  FILE=/sdcard/$MODID\_recovery.log
+  ui_print "- Log will be saved at $FILE"
+  exec 2>$FILE
   ui_print " "
 fi
 
-# magisk
-if [ -d /sbin/.magisk ]; then
-  MAGISKTMP=/sbin/.magisk
-else
-  MAGISKTMP=`realpath /dev/*/.magisk`
-fi
-
-# path
-if [ "$BOOTMODE" == true ]; then
-  MIRROR=$MAGISKTMP/mirror
-else
-  MIRROR=
-fi
-SYSTEM=`realpath $MIRROR/system`
-PRODUCT=`realpath $MIRROR/product`
-VENDOR=`realpath $MIRROR/vendor`
-SYSTEM_EXT=`realpath $MIRROR/system_ext`
-if [ -d $MIRROR/odm ]; then
-  ODM=`realpath $MIRROR/odm`
-else
-  ODM=`realpath /odm`
-fi
-if [ -d $MIRROR/my_product ]; then
-  MY_PRODUCT=`realpath $MIRROR/my_product`
-else
-  MY_PRODUCT=`realpath /my_product`
-fi
-
-# optionals
-OPTIONALS=/sdcard/optionals.prop
+# run
+. $MODPATH/function.sh
 
 # info
 MODVER=`grep_prop version $MODPATH/module.prop`
@@ -45,8 +23,15 @@ MODVERCODE=`grep_prop versionCode $MODPATH/module.prop`
 ui_print " ID=$MODID"
 ui_print " Version=$MODVER"
 ui_print " VersionCode=$MODVERCODE"
-ui_print " MagiskVersion=$MAGISK_VER"
-ui_print " MagiskVersionCode=$MAGISK_VER_CODE"
+if [ "$KSU" == true ]; then
+  ui_print " KSUVersion=$KSU_VER"
+  ui_print " KSUVersionCode=$KSU_VER_CODE"
+  ui_print " KSUKernelVersionCode=$KSU_KERNEL_VER_CODE"
+  sed -i 's|#k||g' $MODPATH/post-fs-data.sh
+else
+  ui_print " MagiskVersion=$MAGISK_VER"
+  ui_print " MagiskVersionCode=$MAGISK_VER_CODE"
+fi
 ui_print " "
 
 # sdk
@@ -61,62 +46,30 @@ else
   ui_print " "
 fi
 
-# mount
-if [ "$BOOTMODE" != true ]; then
-  mount -o rw -t auto /dev/block/bootdevice/by-name/cust /vendor
-  mount -o rw -t auto /dev/block/bootdevice/by-name/vendor /vendor
-  mount -o rw -t auto /dev/block/bootdevice/by-name/persist /persist
-  mount -o rw -t auto /dev/block/bootdevice/by-name/metadata /metadata
+# optionals
+OPTIONALS=/sdcard/optionals.prop
+if [ ! -f $OPTIONALS ]; then
+  touch $OPTIONALS
 fi
 
-# sepolicy.rule
-FILE=$MODPATH/sepolicy.sh
-DES=$MODPATH/sepolicy.rule
-if [ "`grep_prop sepolicy.sh $OPTIONALS`" != 1 ]\
+# sepolicy
+FILE=$MODPATH/sepolicy.rule
+DES=$MODPATH/sepolicy.pfsd
+if [ "`grep_prop sepolicy.sh $OPTIONALS`" == 1 ]\
 && [ -f $FILE ]; then
   mv -f $FILE $DES
-  sed -i 's/magiskpolicy --live "//g' $DES
-  sed -i 's/"//g' $DES
 fi
 
 # cleaning
 ui_print "- Cleaning..."
-PKG=com.google.android.flipendo
+PKGS=`cat $MODPATH/package.txt`
 if [ "$BOOTMODE" == true ]; then
-  for PKGS in $PKG; do
-    RES=`pm uninstall $PKGS`
+  for PKG in $PKGS; do
+    RES=`pm uninstall $PKG 2>/dev/null`
   done
 fi
-rm -rf /metadata/magisk/$MODID
-rm -rf /mnt/vendor/persist/magisk/$MODID
-rm -rf /persist/magisk/$MODID
-rm -rf /data/unencrypted/magisk/$MODID
-rm -rf /cache/magisk/$MODID
+remove_sepolicy_rule
 ui_print " "
-
-# function
-conflict() {
-for NAMES in $NAME; do
-  DIR=/data/adb/modules_update/$NAMES
-  if [ -f $DIR/uninstall.sh ]; then
-    sh $DIR/uninstall.sh
-  fi
-  rm -rf $DIR
-  DIR=/data/adb/modules/$NAMES
-  rm -f $DIR/update
-  touch $DIR/remove
-  FILE=/data/adb/modules/$NAMES/uninstall.sh
-  if [ -f $FILE ]; then
-    sh $FILE
-    rm -f $FILE
-  fi
-  rm -rf /metadata/magisk/$NAMES
-  rm -rf /mnt/vendor/persist/magisk/$NAMES
-  rm -rf /persist/magisk/$NAMES
-  rm -rf /data/unencrypted/magisk/$NAMES
-  rm -rf /cache/magisk/$NAMES
-done
-}
 
 # function
 cleanup() {
@@ -133,11 +86,11 @@ fi
 DIR=/data/adb/modules/$MODID
 FILE=$DIR/module.prop
 if [ "`grep_prop data.cleanup $OPTIONALS`" == 1 ]; then
-  sed -i 's/^data.cleanup=1/data.cleanup=0/' $OPTIONALS
+  sed -i 's|^data.cleanup=1|data.cleanup=0|g' $OPTIONALS
   ui_print "- Cleaning-up $MODID data..."
   cleanup
   ui_print " "
-elif [ -d $DIR ] && ! grep -Eq "$MODNAME" $FILE; then
+elif [ -d $DIR ] && ! grep -q "$MODNAME" $FILE; then
   ui_print "- Different version detected"
   ui_print "  Cleaning-up $MODID data..."
   cleanup
@@ -146,29 +99,28 @@ fi
 
 # function
 permissive_2() {
-sed -i '1i\
-SELINUX=`getenforce`\
-if [ "$SELINUX" == Enforcing ]; then\
-  magiskpolicy --live "permissive *"\
-fi\' $MODPATH/post-fs-data.sh
+sed -i 's|#2||g' $MODPATH/post-fs-data.sh
 }
 permissive() {
-SELINUX=`getenforce`
-if [ "$SELINUX" == Enforcing ]; then
-  setenforce 0
-  SELINUX=`getenforce`
-  if [ "$SELINUX" == Enforcing ]; then
+FILE=/sys/fs/selinux/enforce
+SELINUX=`cat $FILE`
+if [ "$SELINUX" == 1 ]; then
+  if ! setenforce 0; then
+    echo 0 > $FILE
+  fi
+  SELINUX=`cat $FILE`
+  if [ "$SELINUX" == 1 ]; then
     ui_print "  Your device can't be turned to Permissive state."
     ui_print "  Using Magisk Permissive mode instead."
     permissive_2
   else
-    setenforce 1
-    sed -i '1i\
-SELINUX=`getenforce`\
-if [ "$SELINUX" == Enforcing ]; then\
-  setenforce 0\
-fi\' $MODPATH/post-fs-data.sh
+    if ! setenforce 1; then
+      echo 1 > $FILE
+    fi
+    sed -i 's|#1||g' $MODPATH/post-fs-data.sh
   fi
+else
+  sed -i 's|#1||g' $MODPATH/post-fs-data.sh
 fi
 }
 
@@ -188,8 +140,8 @@ fi
 # function
 hide_oat() {
 for APPS in $APP; do
-  mkdir -p `find $MODPATH/system -type d -name $APPS`/oat
-  touch `find $MODPATH/system -type d -name $APPS`/oat/.replace
+  REPLACE="$REPLACE
+  `find $MODPATH/system -type d -name $APPS | sed "s|$MODPATH||g"`/oat"
 done
 }
 
@@ -199,16 +151,16 @@ hide_oat
 
 # function
 check_permission() {
-if ! pm list package | grep -Eq $PKG; then
+if ! pm list package | grep -q $PKG; then
   ui_print "- Checking $NAME"
   ui_print "  of $PKG..."
   FILE=`find $MODPATH/system -type f -name $APP.apk`
-  RES=`pm install -g -i com.android.vending $FILE`
-  if pm list package | grep -Eq $PKG; then
-    if ! dumpsys package $PKG | grep -Eq "$NAME: granted=true"; then
+  RES=`pm install -g -i com.android.vending $FILE 2>/dev/null`
+  if pm list package | grep -q $PKG; then
+    if ! dumpsys package $PKG | grep -q "$NAME: granted=true"; then
       ui_print "  ! You need to disable your Android Signature Verification"
       ui_print "    first to use this module."
-      RES=`pm uninstall $PKG`
+      RES=`pm uninstall $PKG 2>/dev/null`
       abort
     fi
   else
@@ -227,6 +179,17 @@ NAME=android.permission.SUSPEND_APPS
 if [ "$BOOTMODE" == true ]; then
   check_permission
 fi
+
+# overlay
+if [ ! -d /product/overlay ]; then
+  ui_print "- Using /vendor/overlay/ instead of /product/overlay/"
+  mv -f $MODPATH/system/product $MODPATH/system/vendor
+  ui_print " "
+fi
+
+
+
+
 
 
 
