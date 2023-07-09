@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <permissions>
     <privapp-permissions package="com.google.android.flipendo">
+        <permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT"/>
+        <permission name="com.google.android.settings.intelligence.BATTERY_DATA"/>
+        <permission name="android.permission.MANAGE_USERS"/>
         <permission name="android.permission.INTERACT_ACROSS_USERS"/>
         <permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME"/>
         <permission name="android.permission.TETHER_PRIVILEGED"/>
