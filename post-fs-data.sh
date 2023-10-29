@@ -67,13 +67,6 @@ fi
 rm -f $FILE
 ) 2>/dev/null
 
-# cleaning
-FILE=$MODPATH/cleaner.sh
-if [ -f $FILE ]; then
-  . $FILE
-  rm -f $FILE
-fi
-
 # permission
 if [ "$API" -ge 26 ]; then
   if [ -L $MODPATH/system/product ]\
@@ -84,7 +77,12 @@ if [ "$API" -ge 26 ]; then
   fi
 fi
 
-
+# cleaning
+FILE=$MODPATH/cleaner.sh
+if [ -f $FILE ]; then
+  . $FILE
+  mv -f $FILE $FILE\.txt
+fi
 
 
 

@@ -1,6 +1,6 @@
 # boot mode
 if [ "$BOOTMODE" != true ]; then
-  abort "- Please flash via Magisk app only!"
+  abort "- Please install via Magisk/KernelSU app only!"
 fi
 
 # space
@@ -11,6 +11,19 @@ if [ "$BOOTMODE" != true ]; then
   FILE=/sdcard/$MODID\_recovery.log
   ui_print "- Log will be saved at $FILE"
   exec 2>$FILE
+  ui_print " "
+fi
+
+# optionals
+OPTIONALS=/sdcard/optionals.prop
+if [ ! -f $OPTIONALS ]; then
+  touch $OPTIONALS
+fi
+
+# debug
+if [ "`grep_prop debug.log $OPTIONALS`" == 1 ]; then
+  ui_print "- The install log will contain detailed information"
+  set -x
   ui_print " "
 fi
 
@@ -46,12 +59,6 @@ else
   ui_print " "
 fi
 
-# optionals
-OPTIONALS=/sdcard/optionals.prop
-if [ ! -f $OPTIONALS ]; then
-  touch $OPTIONALS
-fi
-
 # sepolicy
 FILE=$MODPATH/sepolicy.rule
 DES=$MODPATH/sepolicy.pfsd
@@ -85,12 +92,14 @@ fi
 # cleanup
 DIR=/data/adb/modules/$MODID
 FILE=$DIR/module.prop
+PREVMODNAME=`grep_prop name $FILE`
 if [ "`grep_prop data.cleanup $OPTIONALS`" == 1 ]; then
   sed -i 's|^data.cleanup=1|data.cleanup=0|g' $OPTIONALS
   ui_print "- Cleaning-up $MODID data..."
   cleanup
   ui_print " "
-elif [ -d $DIR ] && ! grep -q "$MODNAME" $FILE; then
+elif [ -d $DIR ]\
+&& [ "$PREVMODNAME" != "$MODNAME" ]; then
   ui_print "- Different version detected"
   ui_print "  Cleaning-up $MODID data..."
   cleanup
@@ -151,12 +160,12 @@ hide_oat
 
 # function
 check_permission() {
-if ! pm list package | grep -q $PKG; then
+if ! appops get $PKG > /dev/null 2>&1; then
   ui_print "- Checking $NAME"
   ui_print "  of $PKG..."
   FILE=`find $MODPATH/system -type f -name $APP.apk`
   RES=`pm install -g -i com.android.vending $FILE 2>/dev/null`
-  if pm list package | grep -q $PKG; then
+  if appops get $PKG > /dev/null 2>&1; then
     if ! dumpsys package $PKG | grep -q "$NAME: granted=true"; then
       ui_print "  ! You need to disable your Android Signature Verification"
       ui_print "    first to use this module."
