@@ -6,7 +6,6 @@ exec 2>$MODPATH/debug-pfsd.log
 set -x
 
 # var
-API=`getprop ro.build.version.sdk`
 ABI=`getprop ro.product.cpu.abi`
 
 # function
@@ -47,34 +46,40 @@ FILE=$MODPATH/sepolicy.pfsd
 sepolicy_sh
 
 # list
-(
 PKGS=`cat $MODPATH/package.txt`
 for PKG in $PKGS; do
-  magisk --denylist rm $PKG
-  magisk --sulist add $PKG
+  magisk --denylist rm $PKG 2>/dev/null
+  magisk --sulist add $PKG 2>/dev/null
 done
-FILE=$MODPATH/tmp_file
-magisk --hide sulist 2>$FILE
-if [ "`cat $FILE`" == 'SuList is enforced' ]; then
+if magisk magiskhide sulist; then
   for PKG in $PKGS; do
-    magisk --hide add $PKG
+    magisk magiskhide add $PKG
   done
 else
   for PKG in $PKGS; do
-    magisk --hide rm $PKG
+    magisk magiskhide rm $PKG
   done
 fi
-rm -f $FILE
-) 2>/dev/null
 
 # permission
-if [ "$API" -ge 26 ]; then
-  if [ -L $MODPATH/system/product ]\
-  && [ -d $MODPATH/product ]; then
-    chcon -R u:object_r:vendor_overlay_file:s0 $MODPATH/product/overlay
-  else
-    chcon -R u:object_r:vendor_overlay_file:s0 $MODPATH/system/product/overlay
-  fi
+DIRS=`find $MODPATH/vendor\
+           $MODPATH/system/vendor -type d`
+for DIR in $DIRS; do
+  chown 0.2000 $DIR
+done
+if [ -L $MODPATH/system/product ]\
+&& [ -d $MODPATH/product ]; then
+  chcon -R u:object_r:vendor_overlay_file:s0 $MODPATH/product/overlay
+else
+  chcon -R u:object_r:vendor_overlay_file:s0 $MODPATH/system/product/overlay
+fi
+if [ -L $MODPATH/system/vendor ]\
+&& [ -d $MODPATH/vendor ]; then
+  chcon -R u:object_r:vendor_file:s0 $MODPATH/vendor
+  chcon -R u:object_r:vendor_overlay_file:s0 $MODPATH/vendor/overlay
+else
+  chcon -R u:object_r:vendor_file:s0 $MODPATH/system/vendor
+  chcon -R u:object_r:vendor_overlay_file:s0 $MODPATH/system/vendor/overlay
 fi
 
 # cleaning

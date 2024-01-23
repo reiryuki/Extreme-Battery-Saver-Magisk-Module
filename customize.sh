@@ -1,21 +1,19 @@
-# boot mode
-if [ "$BOOTMODE" != true ]; then
-  abort "- Please install via Magisk/KernelSU app only!"
-fi
-
 # space
 ui_print " "
 
+# var
+UID=`id -u`
+
 # log
 if [ "$BOOTMODE" != true ]; then
-  FILE=/sdcard/$MODID\_recovery.log
+  FILE=/data/media/"$UID"/$MODID\_recovery.log
   ui_print "- Log will be saved at $FILE"
   exec 2>$FILE
   ui_print " "
 fi
 
 # optionals
-OPTIONALS=/sdcard/optionals.prop
+OPTIONALS=/data/media/"$UID"/optionals.prop
 if [ ! -f $OPTIONALS ]; then
   touch $OPTIONALS
 fi
@@ -58,6 +56,9 @@ else
   ui_print "- SDK $API"
   ui_print " "
 fi
+
+# recovery
+mount_partitions_in_recovery
 
 # sepolicy
 FILE=$MODPATH/sepolicy.rule
@@ -158,36 +159,58 @@ done
 APPS="`ls $MODPATH/system/priv-app` `ls $MODPATH/system/app`"
 hide_oat
 
-# function
-check_permission() {
-if ! appops get $PKG > /dev/null 2>&1; then
-  ui_print "- Checking $NAME"
-  ui_print "  of $PKG..."
-  FILE=`find $MODPATH/system -type f -name $APP.apk`
-  RES=`pm install -g -i com.android.vending $FILE 2>/dev/null`
-  if appops get $PKG > /dev/null 2>&1; then
-    if ! dumpsys package $PKG | grep -q "$NAME: granted=true"; then
-      ui_print "  ! You need to disable your Android Signature Verification"
-      ui_print "    first to use this module."
-      RES=`pm uninstall $PKG 2>/dev/null`
-      abort
-    fi
-  else
-    ui_print "  ! Failed."
-    ui_print "    Maybe insufficient storage."
-    abort
-  fi
-  ui_print " "
-fi
-}
-
-# check
+# permission
+ui_print "- Granting permissions"
+ui_print "  Please wait..."
 APP=Flipendo
 PKG=com.google.android.flipendo
-NAME=android.permission.SUSPEND_APPS
-if [ "$BOOTMODE" == true ]; then
-  check_permission
+if ! appops get $PKG > /dev/null 2>&1; then
+  if [ "$BOOTMODE" == true ]; then
+    FILE=`find $MODPATH/system -type f -name $APP.apk`
+    RES=`pm install -g -i com.android.vending $FILE 2>/dev/null`
+    if appops get $PKG > /dev/null 2>&1; then
+      RES=`pm uninstall -k $PKG 2>/dev/null`
+    else
+      ui_print "  ! Failed."
+      ui_print "    Maybe insufficient storage."
+      abort
+    fi
+  fi
 fi
+FILE=`find /data ! -path "/data/media/*" -type f -name runtime-permissions.xml`
+if grep -q '"com.google.android.flipendo"' $FILE; then
+  COUNT=1
+  if grep -q '><' $FILE; then
+    TIGHT=true
+  else
+    TIGHT=false
+  fi
+  LIST=`cat $FILE | sed 's|><|>\n<|g'`
+  RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
+  until echo "$RES" | grep -q '</package>'; do
+    COUNT=`expr $COUNT + 1`
+    RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
+  done
+  if $TIGHT; then
+    RES=`echo $RES | sed 's|> <|><|g'`
+  fi
+  if echo "$RES" | grep -q false; then
+    if grep -q "$RES" $FILE; then
+      MODRES=`echo "$RES" | sed 's|false|true|g'`
+      sed -i "s|$RES|$MODRES|g" $FILE
+      ui_print "  If you are disabling this module,"
+      ui_print "  then you need to reinstall this module"
+      ui_print "  to re-grant permissions."
+    else
+      ui_print "  ! There is a format error."
+      abort
+    fi
+  fi
+else
+  ui_print "  ! Target not found."
+  abort
+fi
+ui_print " "
 
 # overlay
 if [ ! -d /product/overlay ]; then

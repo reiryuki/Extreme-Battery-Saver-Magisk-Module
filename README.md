@@ -1,8 +1,12 @@
 # Extreme Battery Saver Magisk Module
 
+## DISCLAIMER
+- Google app is owned by Google LLC.
+- The MIT license specified here is for the Magisk Module only, not for Google app.
+
 ## Descriptions
 - Extreme Battery Saver app by Google LLC
-- Extreme Battery Saver can only be working if android.permission.SUSPEND_APPS is granted correctly. It will pause your apps while enabling built-in standar AOSP battery saver.
+- Pauses apps while battery saver is activated to save more power
 
 ## Sources
 - https://apkmirror.com com.google.android.flipendo by Google LLC
@@ -14,11 +18,9 @@
 ## Requirements
 - Android 11 and up
 - Magisk or KernelSU installed
-- Any AOSP signatured ROM to grant android.permission.SUSPEND_APPS
-- Disabled Android Signature Verification for non-AOSP Signatured ROM to grant android.permission.SUSPEND_APPS. Tap here: https://t.me/androidryukimodsdiscussions/58331
 
 ## Installation Guide & Download Link
-- Install this module https://www.pling.com/p/1707806/ via Magisk app or KernelSU app or Recovery if Magisk installed
+- Install this module https://www.pling.com/p/1707806/ via Magisk app or KernelSU app only
 - Reboot
 - If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot after
 - If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot after
@@ -30,6 +32,7 @@
 - Android 12 AncientOS ROM
 - Android 12.1 Nusantara ROM
 - Android 13 Nusantara ROM, AOSP ROM, & CrDroid ROM
+- Android 14 LineageOS ROM
 
 ## Optionals
 - Global: https://t.me/androidryukimodsdiscussions/60861
