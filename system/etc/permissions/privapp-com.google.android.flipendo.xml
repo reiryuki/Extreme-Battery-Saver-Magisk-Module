@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <permissions>
     <privapp-permissions package="com.google.android.flipendo">
+        <permission name="android.permission.SCHEDULE_EXACT_ALARM"/>
         <permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT"/>
         <permission name="com.google.android.settings.intelligence.BATTERY_DATA"/>
         <permission name="android.permission.MANAGE_USERS"/>
