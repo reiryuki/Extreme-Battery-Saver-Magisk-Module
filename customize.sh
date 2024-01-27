@@ -178,33 +178,20 @@ if ! appops get $PKG > /dev/null 2>&1; then
   fi
 fi
 FILE=`find /data ! -path "/data/media/*" -type f -name runtime-permissions.xml`
+chmod 0600 $FILE
 if grep -q '"com.google.android.flipendo"' $FILE; then
   COUNT=1
-  if grep -q '><' $FILE; then
-    TIGHT=true
-  else
-    TIGHT=false
-  fi
   LIST=`cat $FILE | sed 's|><|>\n<|g'`
   RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
   until echo "$RES" | grep -q '</package>'; do
     COUNT=`expr $COUNT + 1`
     RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
   done
-  if $TIGHT; then
-    RES=`echo $RES | sed 's|> <|><|g'`
-  fi
   if echo "$RES" | grep -q false; then
-    if grep -q "$RES" $FILE; then
-      MODRES=`echo "$RES" | sed 's|false|true|g'`
-      sed -i "s|$RES|$MODRES|g" $FILE
-      ui_print "  If you are disabling this module,"
-      ui_print "  then you need to reinstall this module"
-      ui_print "  to re-grant permissions."
-    else
-      ui_print "  ! There is a format error."
-      abort
-    fi
+    sed -i 's|<package name="com.google.android.flipendo">|<package name="com.google.android.flipendo"><permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" /><permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" /><permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" /><permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="300" /><permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" /><permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" /><permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" /><permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" /><permission name="android.permission.DEVICE_POWER" granted="true" flags="0" /><permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" /><permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" /><permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" /><permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" /><permission name="android.permission.MANAGE_USERS" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" /><permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" /><permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" /><permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" /><permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" /><permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" /><permission name="android.permission.QUERY_USERS" granted="true" flags="0" /><permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" /><permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" /><permission name="android.permission.CREATE_USERS" granted="true" flags="0" /><permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" /><permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" /></package><package name="removed">|g' $FILE
+    ui_print "  If you are disabling this module,"
+    ui_print "  then you need to reinstall this module"
+    ui_print "  to re-grant permissions."
   fi
 else
   ui_print "  ! Target not found."

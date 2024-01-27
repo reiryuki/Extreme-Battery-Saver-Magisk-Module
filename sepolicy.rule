@@ -16,6 +16,9 @@ allow hal_power_default { flipendo system_app platform_app priv_app untrusted_ap
 # unix_stream_socket
 allow { flipendo system_app platform_app priv_app untrusted_app_29 untrusted_app_27 untrusted_app } zygote unix_stream_socket getopt
 
+# file
+allow { flipendo system_app platform_app priv_app untrusted_app_29 untrusted_app_27 untrusted_app } settingslib_prop file read
+
 # additional
 allow hal_power_stats_default sysfs dir { read open }
 

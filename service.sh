@@ -8,7 +8,7 @@ set -x
 API=`getprop ro.build.version.sdk`
 
 # wait
-until [ "`getprop sys.boot_completed`" == "1" ]; do
+until [ "`getprop sys.boot_completed`" == 1 ]; do
   sleep 10
 done
 
