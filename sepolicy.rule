@@ -7,17 +7,17 @@ allow { system_file system_lib_file vendor_file vendor_configs_file vendor_overl
 allow init { system_file system_lib_file vendor_file vendor_configs_file vendor_overlay_file } { dir file } relabelfrom
 
 # service_manager
-allow { flipendo system_app platform_app priv_app untrusted_app_29 untrusted_app_27 untrusted_app } { hal_power_service color_display_service } service_manager find
+allow { flipendo system_app platform_app priv_app untrusted_app_30 untrusted_app_29 untrusted_app_27 untrusted_app } { hal_power_service color_display_service } service_manager find
 
 # binder
-allow { flipendo system_app platform_app priv_app untrusted_app_29 untrusted_app_27 untrusted_app } hal_power_default binder call
-allow hal_power_default { flipendo system_app platform_app priv_app untrusted_app_29 untrusted_app_27 untrusted_app } binder transfer
+allow { flipendo system_app platform_app priv_app untrusted_app_30 untrusted_app_29 untrusted_app_27 untrusted_app } hal_power_default binder call
+allow hal_power_default { flipendo system_app platform_app priv_app untrusted_app_30 untrusted_app_29 untrusted_app_27 untrusted_app } binder transfer
 
 # unix_stream_socket
-allow { flipendo system_app platform_app priv_app untrusted_app_29 untrusted_app_27 untrusted_app } zygote unix_stream_socket getopt
+allow { flipendo system_app platform_app priv_app untrusted_app_30 untrusted_app_29 untrusted_app_27 untrusted_app } zygote unix_stream_socket getopt
 
 # file
-allow { flipendo system_app platform_app priv_app untrusted_app_29 untrusted_app_27 untrusted_app } settingslib_prop file read
+allow { flipendo system_app platform_app priv_app untrusted_app_30 untrusted_app_29 untrusted_app_27 untrusted_app } settingslib_prop file read
 
 # additional
 allow hal_power_stats_default sysfs dir { read open }
