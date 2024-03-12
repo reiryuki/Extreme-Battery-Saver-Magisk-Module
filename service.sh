@@ -15,6 +15,8 @@ done
 # grant
 PKG=com.google.android.flipendo
 appops set $PKG GET_USAGE_STATS allow
+appops set $PKG WRITE_SETTINGS allow
+appops set $PKG SYSTEM_ALERT_WINDOW allow
 appops set $PKG INTERACT_ACROSS_PROFILES allow
 if [ "$API" -ge 30 ]; then
   appops set $PKG AUTO_REVOKE_PERMISSIONS_IF_UNUSED ignore

@@ -50,7 +50,7 @@ NUM=30
 if [ "$API" -lt $NUM ]; then
   ui_print "! Unsupported SDK $API."
   ui_print "  You have to upgrade your Android version"
-  ui_print "  at least SDK API $NUM to use this module."
+  ui_print "  at least SDK $NUM to use this module."
   abort
 else
   ui_print "- SDK $API"
@@ -73,7 +73,10 @@ ui_print "- Cleaning..."
 PKGS=`cat $MODPATH/package.txt`
 if [ "$BOOTMODE" == true ]; then
   for PKG in $PKGS; do
-    RES=`pm uninstall $PKG 2>/dev/null`
+    FILE=`find /data/app -name *$PKG*`
+    if [ "$FILE" ]; then
+      RES=`pm uninstall $PKG 2>/dev/null`
+    fi
   done
 fi
 remove_sepolicy_rule
@@ -162,35 +165,95 @@ hide_oat
 # function
 warning() {
 ui_print "  If you are disabling this module,"
-ui_print "  then you need to reinstall this module"
-ui_print "  to re-grant permissions."
+ui_print "  then you need to reinstall this module, reboot,"
+ui_print "  & reinstall again to re-grant permissions."
+}
+warning_2() {
+ui_print "  Granting permissions at the first installation"
+ui_print "  doesn't work. You need to reinstall this module again"
+ui_print "  after reboot to grant permissions."
 }
 
 # permission
 ui_print "- Granting permissions"
 ui_print "  Please wait..."
-APP=Flipendo
-PKG=com.google.android.flipendo
-if ! appops get $PKG > /dev/null 2>&1; then
-  if [ "$BOOTMODE" == true ]; then
-    FILE=`find $MODPATH/system -type f -name $APP.apk`
-    RES=`pm install -g -i com.android.vending $FILE 2>/dev/null`
-    if appops get $PKG > /dev/null 2>&1; then
-      RES=`pm uninstall -k $PKG 2>/dev/null`
-    else
-      ui_print "  ! Failed."
-      ui_print "    Maybe insufficient storage."
-      abort
-    fi
-  fi
-fi
 FILE=`find /data ! -path "/data/media/*" -type f -name runtime-permissions.xml`
 chmod 0600 $FILE
 if grep -q '<package name="com.google.android.flipendo" />' $FILE; then
-  sed -i 's|<package name="com.google.android.flipendo" />|<package name="com.google.android.flipendo"><permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" /><permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" /><permission android.permission.INTERNAL_SYSTEM_WINDOW" granted="true" flags="0" /><permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" /><permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" /><permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" /><permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="300" /><permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" /><permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" /><permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" /><permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" /><permission name="android.permission.DEVICE_POWER" granted="true" flags="0" /><permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" /><permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" /><permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" /><permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" /><permission name="android.permission.MANAGE_USERS" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" /><permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" /><permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" /><permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" /><permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" /><permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" /><permission name="android.permission.QUERY_USERS" granted="true" flags="0" /><permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" /><permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" /><permission name="android.permission.CREATE_USERS" granted="true" flags="0" /><permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" /><permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" /></package>|g' $FILE
+  sed -i 's|<package name="com.google.android.flipendo" />|\
+<package name="com.google.android.flipendo">\
+<permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.INTERNAL_SYSTEM_WINDOW" granted="true" flags="0" />\
+<permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" />\
+<permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" />\
+<permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="0" />\
+<permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" />\
+<permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" />\
+<permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" />\
+<permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" />\
+<permission name="android.permission.DEVICE_POWER" granted="true" flags="0" />\
+<permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" />\
+<permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" />\
+<permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" />\
+<permission name="android.permission.MANAGE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" />\
+<permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" />\
+<permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" />\
+<permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" />\
+<permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" />\
+<permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_USERS" granted="true" flags="0" />\
+<permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" />\
+<permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" />\
+<permission name="android.permission.CREATE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" />\
+<permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" />\
+</package>\n|g' $FILE
   warning
 elif grep -q '<package name="com.google.android.flipendo"/>' $FILE; then
-  sed -i 's|<package name="com.google.android.flipendo"/>|<package name="com.google.android.flipendo"><permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" /><permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" /><permission android.permission.INTERNAL_SYSTEM_WINDOW" granted="true" flags="0" /><permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" /><permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" /><permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" /><permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="300" /><permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" /><permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" /><permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" /><permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" /><permission name="android.permission.DEVICE_POWER" granted="true" flags="0" /><permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" /><permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" /><permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" /><permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" /><permission name="android.permission.MANAGE_USERS" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" /><permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" /><permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" /><permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" /><permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" /><permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" /><permission name="android.permission.QUERY_USERS" granted="true" flags="0" /><permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" /><permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" /><permission name="android.permission.CREATE_USERS" granted="true" flags="0" /><permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" /><permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" /></package>|g' $FILE
+  sed -i 's|<package name="com.google.android.flipendo"/>|\
+<package name="com.google.android.flipendo">\
+<permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.INTERNAL_SYSTEM_WINDOW" granted="true" flags="0" />\
+<permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" />\
+<permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" />\
+<permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="0" />\
+<permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" />\
+<permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" />\
+<permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" />\
+<permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" />\
+<permission name="android.permission.DEVICE_POWER" granted="true" flags="0" />\
+<permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" />\
+<permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" />\
+<permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" />\
+<permission name="android.permission.MANAGE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" />\
+<permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" />\
+<permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" />\
+<permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" />\
+<permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" />\
+<permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_USERS" granted="true" flags="0" />\
+<permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" />\
+<permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" />\
+<permission name="android.permission.CREATE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" />\
+<permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" />\
+</package>\n|g' $FILE
   warning
 elif grep -q '<package name="com.google.android.flipendo">' $FILE; then
   COUNT=1
@@ -200,39 +263,59 @@ elif grep -q '<package name="com.google.android.flipendo">' $FILE; then
     COUNT=`expr $COUNT + 1`
     RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
   done
-  if ! echo "$RES" | grep -q 'name="android.permission.REAL_GET_TASKS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.WRITE_SETTINGS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.POST_NOTIFICATIONS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.SYSTEM_ALERT_WINDOW" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.FOREGROUND_SERVICE" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true"'\
+  if ! echo "$RES" | grep -q 'name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true"'\
   || ! echo "$RES" | grep -q 'name="android.permission.DEVICE_POWER" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true"'\
   || ! echo "$RES" | grep -q 'name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.PACKAGE_USAGE_STATS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.TETHER_PRIVILEGED" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.WRITE_SECURE_SETTINGS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.MANAGE_USERS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.INTERACT_ACROSS_USERS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.SCHEDULE_EXACT_ALARM" granted="true"'\
   || ! echo "$RES" | grep -q 'name="android.permission.SUSPEND_APPS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.MODIFY_QUIET_MODE" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.QUERY_USERS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.QUERY_ALL_PACKAGES" granted="true"'\
   || ! echo "$RES" | grep -q 'name="android.permission.READ_DEVICE_CONFIG" granted="true"'; then
-    sed -i 's|<package name="com.google.android.flipendo">|<package name="com.google.android.flipendo"><permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" /><permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" /><permission android.permission.INTERNAL_SYSTEM_WINDOW" granted="true" flags="0" /><permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" /><permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" /><permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" /><permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="300" /><permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" /><permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" /><permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" /><permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" /><permission name="android.permission.DEVICE_POWER" granted="true" flags="0" /><permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" /><permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" /><permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" /><permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" /><permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" /><permission name="android.permission.MANAGE_USERS" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" /><permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" /><permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" /><permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" /><permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" /><permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" /><permission name="android.permission.QUERY_USERS" granted="true" flags="0" /><permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" /><permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" /><permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" /><permission name="android.permission.CREATE_USERS" granted="true" flags="0" /><permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" /><permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" /></package><package name="removed">|g' $FILE
+    PATCH=true
+  elif [ "$API" -le 33 ]\
+  && ! echo "$RES" | grep -q 'name="android.permission.QUERY_USERS" granted="true"'; then
+    PATCH=true
+  else
+    PATCH=false
+  fi
+  if [ "$PATCH" == true ]; then
+    sed -i 's|<package name="com.google.android.flipendo">|\
+<package name="com.google.android.flipendo">\
+<permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.INTERNAL_SYSTEM_WINDOW" granted="true" flags="0" />\
+<permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" />\
+<permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" />\
+<permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="0" />\
+<permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" />\
+<permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" />\
+<permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" />\
+<permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" />\
+<permission name="android.permission.DEVICE_POWER" granted="true" flags="0" />\
+<permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" />\
+<permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" />\
+<permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" />\
+<permission name="android.permission.MANAGE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" />\
+<permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" />\
+<permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" />\
+<permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" />\
+<permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" />\
+<permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_USERS" granted="true" flags="0" />\
+<permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" />\
+<permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" />\
+<permission name="android.permission.CREATE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" />\
+<permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" />\
+</package>\n<package name="removed">|g' $FILE
     warning
   fi
 else
-  ui_print "  ! Target not found."
-  abort
+  warning_2
 fi
 ui_print " "
 
