@@ -3,6 +3,7 @@ ui_print " "
 
 # var
 UID=`id -u`
+[ ! "$UID" ] && UID=0
 
 # log
 if [ "$BOOTMODE" != true ]; then
@@ -24,6 +25,13 @@ fi
   set -x
   ui_print " "
 #fi
+
+# recovery
+if [ "$BOOTMODE" != true ]; then
+  MODPATH_UPDATE=`echo $MODPATH | sed 's|modules/|modules_update/|g'`
+  rm -f $MODPATH/update
+  rm -rf $MODPATH_UPDATE
+fi
 
 # run
 . $MODPATH/function.sh
@@ -104,7 +112,7 @@ if [ "`grep_prop data.cleanup $OPTIONALS`" == 1 ]; then
   ui_print " "
 elif [ -d $DIR ]\
 && [ "$PREVMODNAME" != "$MODNAME" ]; then
-  ui_print "- Different version detected"
+  ui_print "- Different module name is detected"
   ui_print "  Cleaning-up $MODID data..."
   cleanup
   ui_print " "
@@ -159,7 +167,8 @@ done
 }
 
 # hide
-APPS="`ls $MODPATH/system/priv-app` `ls $MODPATH/system/app`"
+APPS="`ls $MODPATH/system/priv-app`
+      `ls $MODPATH/system/app`"
 hide_oat
 
 # function
@@ -177,7 +186,7 @@ ui_print "  after reboot to grant permissions."
 # permission
 ui_print "- Granting permissions"
 ui_print "  Please wait..."
-FILE=`find /data ! -path "/data/media/*" -type f -name runtime-permissions.xml`
+FILE=`find /data/system /data/misc* -type f -name runtime-permissions.xml`
 chmod 0600 $FILE
 if grep -q '<package name="com.google.android.flipendo" />' $FILE; then
   sed -i 's|<package name="com.google.android.flipendo" />|\

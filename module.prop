@@ -1,8 +1,8 @@
 id=Flipendo
 name=Extreme Battery Saver
-version=v1.14
-versionCode=14
+version=v1.15
+versionCode=15
 author=Rei Ryuki the Fixer
-description=Extreme Battery Saver app by Google LLC ported for any Android 11 and up.
+description=Extreme Battery Saver app by Google LLC ported for any Android 11 (SDK 30) and up.
 
 
