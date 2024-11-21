@@ -10,13 +10,15 @@
 
 ## Sources
 - https://apkmirror.com com.google.android.flipendo by Google LLC
+- libmagiskpolicy.so: Kitsune Mask R6687BB53
 
 ## Screenshots
 - https://t.me/androidryukimods/405
 - https://t.me/androidryukimods/418
 
 ## Requirements
-- Android 11 (SDK 30) and up
+- Android 11 (SDK 30) until 14 (SDK 34)
+- Android 15 (SDK 35) and up with AOSP signatured ROM or disabled Android Signature Verification for non-AOSP sigantured ROM https://t.me/androidryukimodsdiscussions/58331
 - Magisk or KernelSU installed
 
 ## Installation Guide & Download Link
@@ -31,16 +33,17 @@
 - Tap the notification that appears if "Ask every time" is choosen to enable the Extreme Battery Saver and your apps will be paused
 
 ## Optionals
-- Global: https://t.me/androidryukimodsdiscussions/60861
+- Global: https://t.me/ryukinotes/35
 
 ## Troubleshootings
-- Global: https://t.me/androidryukimodsdiscussions/29836
+- Global: https://t.me/ryukinotes/34
 
 ## Support & Bug Report
 - https://t.me/androidryukimodsdiscussions/2618
 - If you don't do above, issues will be closed immediately.
 
 ## Credits and Contributors
+- @KaldirimMuhendisi
 - https://t.me/androidryukimodsdiscussions
 - You can contribute ideas about this Magisk Module here: https://t.me/androidappsportdevelopment
 

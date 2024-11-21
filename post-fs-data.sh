@@ -7,6 +7,7 @@ set -x
 
 # var
 ABI=`getprop ro.product.cpu.abi`
+API=`getprop ro.build.version.sdk`
 
 # function
 permissive() {
@@ -44,6 +45,19 @@ chmod 0755 $MODPATH/*/libmagiskpolicy.so
 #ksepolicy_sh
 FILE=$MODPATH/sepolicy.pfsd
 sepolicy_sh
+
+# patch plat_seapp_contexts
+DIR=/system/etc/selinux
+FILE=$DIR/plat_seapp_contexts
+rm -f $MODPATH$FILE
+if [ "$API" -ge 35 ]; then
+  mkdir -p $MODPATH$DIR
+  if ! grep 'user=system seinfo=default domain=system_app type=system_app_data_file' $FILE; then
+    cp -af $FILE $MODPATH$FILE
+    sed -i '1i\
+user=system seinfo=default domain=system_app type=system_app_data_file' $MODPATH$FILE
+  fi
+fi
 
 # permission
 DIRS=`find $MODPATH/vendor\

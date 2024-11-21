@@ -1,3 +1,8 @@
+# boot mode
+if [ "$BOOTMODE" != true ]; then
+  abort "! Please install via Magisk/KernelSU app only!"
+fi
+
 # space
 ui_print " "
 
@@ -178,18 +183,19 @@ ui_print "  then you need to reinstall this module, reboot,"
 ui_print "  & reinstall again to re-grant permissions."
 }
 warning_2() {
-ui_print "  Granting permissions at the first installation"
-ui_print "  doesn't work. You need to reinstall this module again"
-ui_print "  after reboot to grant permissions."
+ui_print "  If there is still crash, then you need to reinstall this"
+ui_print "  module again after reboot to re-grant permissions."
+ui_print "  "
 }
-
-# permission
+grant_runtime_permissions() {
 ui_print "- Granting permissions"
 ui_print "  Please wait..."
-FILE=`find /data/system /data/misc* -type f -name runtime-permissions.xml`
-chmod 0600 $FILE
-if grep -q '<package name="com.google.android.flipendo" />' $FILE; then
-  sed -i 's|<package name="com.google.android.flipendo" />|\
+# patching other than 0 causes bootloop
+FILES=`find /data/system/users/0 /data/misc_de/0 -type f -name runtime-permissions.xml`
+for FILE in $FILES; do
+  chmod 0600 $FILE
+  if grep -q '<package name="com.google.android.flipendo" />' $FILE; then
+    sed -i 's|<package name="com.google.android.flipendo" />|\
 <package name="com.google.android.flipendo">\
 <permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" />\
 <permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" />\
@@ -225,9 +231,9 @@ if grep -q '<package name="com.google.android.flipendo" />' $FILE; then
 <permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" />\
 <permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" />\
 </package>\n|g' $FILE
-  warning
-elif grep -q '<package name="com.google.android.flipendo"/>' $FILE; then
-  sed -i 's|<package name="com.google.android.flipendo"/>|\
+    warning
+  elif grep -q '<package name="com.google.android.flipendo"/>' $FILE; then
+    sed -i 's|<package name="com.google.android.flipendo"/>|\
 <package name="com.google.android.flipendo">\
 <permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" />\
 <permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" />\
@@ -263,29 +269,31 @@ elif grep -q '<package name="com.google.android.flipendo"/>' $FILE; then
 <permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" />\
 <permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" />\
 </package>\n|g' $FILE
-  warning
-elif grep -q '<package name="com.google.android.flipendo">' $FILE; then
-  COUNT=1
-  LIST=`cat $FILE | sed 's|><|>\n<|g'`
-  RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
-  until echo "$RES" | grep -q '</package>'; do
-    COUNT=`expr $COUNT + 1`
+    warning
+  elif grep -q '<package name="com.google.android.flipendo">' $FILE; then
+    {
+    COUNT=1
+    LIST=`cat $FILE | sed 's|><|>\n<|g'`
     RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
-  done
-  if ! echo "$RES" | grep -q 'name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.DEVICE_POWER" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.SUSPEND_APPS" granted="true"'\
-  || ! echo "$RES" | grep -q 'name="android.permission.READ_DEVICE_CONFIG" granted="true"'; then
-    PATCH=true
-  elif [ "$API" -le 33 ]\
-  && ! echo "$RES" | grep -q 'name="android.permission.QUERY_USERS" granted="true"'; then
-    PATCH=true
-  else
-    PATCH=false
-  fi
-  if [ "$PATCH" == true ]; then
-    sed -i 's|<package name="com.google.android.flipendo">|\
+    until echo "$RES" | grep -q '</package>'; do
+      COUNT=`expr $COUNT + 1`
+      RES=`echo "$LIST" | grep -A$COUNT '<package name="com.google.android.flipendo">'`
+    done
+    } 2>/dev/null
+    if ! echo "$RES" | grep -q 'name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true"'\
+    || ! echo "$RES" | grep -q 'name="android.permission.DEVICE_POWER" granted="true"'\
+    || ! echo "$RES" | grep -q 'name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true"'\
+    || ! echo "$RES" | grep -q 'name="android.permission.SUSPEND_APPS" granted="true"'\
+    || ! echo "$RES" | grep -q 'name="android.permission.READ_DEVICE_CONFIG" granted="true"'; then
+      PATCH=true
+    elif [ "$API" -le 33 ]\
+    && ! echo "$RES" | grep -q 'name="android.permission.QUERY_USERS" granted="true"'; then
+      PATCH=true
+    else
+      PATCH=false
+    fi
+    if [ "$PATCH" == true ]; then
+      sed -i 's|<package name="com.google.android.flipendo">|\
 <package name="com.google.android.flipendo">\
 <permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" />\
 <permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" />\
@@ -321,12 +329,99 @@ elif grep -q '<package name="com.google.android.flipendo">' $FILE; then
 <permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" />\
 <permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" />\
 </package>\n<package name="removed">|g' $FILE
-    warning
+      warning
+    fi
+  else
+    sed -i 's|</runtime-permissions>|\
+<package name="com.google.android.flipendo">\
+<permission name="android.permission.ACCESS_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.ROTATE_SURFACE_FLINGER" granted="true" flags="0" />\
+<permission name="android.permission.INTERNAL_SYSTEM_WINDOW" granted="true" flags="0" />\
+<permission name="com.google.android.settings.intelligence.BATTERY_DATA" granted="true" flags="0" />\
+<permission name="android.permission.REAL_GET_TASKS" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.CONTROL_DISPLAY_COLOR_TRANSFORMS" granted="true" flags="0" />\
+<permission name="android.permission.POST_NOTIFICATIONS" granted="true" flags="0" />\
+<permission name="android.permission.SYSTEM_ALERT_WINDOW" granted="true" flags="0" />\
+<permission name="android.permission.FOREGROUND_SERVICE" granted="true" flags="0" />\
+<permission name="android.permission.LAUNCH_MULTI_PANE_SETTINGS_DEEP_LINK" granted="true" flags="0" />\
+<permission name="android.permission.RECEIVE_BOOT_COMPLETED" granted="true" flags="0" />\
+<permission name="android.permission.DEVICE_POWER" granted="true" flags="0" />\
+<permission name="com.google.android.flipendo.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS_FULL" granted="true" flags="0" />\
+<permission name="android.permission.PACKAGE_USAGE_STATS" granted="true" flags="0" />\
+<permission name="android.permission.TETHER_PRIVILEGED" granted="true" flags="0" />\
+<permission name="android.permission.WRITE_SECURE_SETTINGS" granted="true" flags="0" />\
+<permission name="android.permission.SUBSTITUTE_NOTIFICATION_APP_NAME" granted="true" flags="0" />\
+<permission name="android.permission.MANAGE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_USERS" granted="true" flags="0" />\
+<permission name="android.permission.BROADCAST_CLOSE_SYSTEM_DIALOGS" granted="true" flags="0" />\
+<permission name="android.permission.KILL_BACKGROUND_PROCESSES" granted="true" flags="0" />\
+<permission name="android.permission.SCHEDULE_EXACT_ALARM" granted="true" flags="0" />\
+<permission name="android.permission.SUSPEND_APPS" granted="true" flags="0" />\
+<permission name="android.permission.MODIFY_QUIET_MODE" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_USERS" granted="true" flags="0" />\
+<permission name="android.permission.SET_WALLPAPER_DIM_AMOUNT" granted="true" flags="0" />\
+<permission name="android.permission.START_FOREGROUND_SERVICES_FROM_BACKGROUND" granted="true" flags="0" />\
+<permission name="android.permission.INTERACT_ACROSS_PROFILES" granted="true" flags="0" />\
+<permission name="android.permission.CREATE_USERS" granted="true" flags="0" />\
+<permission name="android.permission.QUERY_ALL_PACKAGES" granted="true" flags="0" />\
+<permission name="android.permission.READ_DEVICE_CONFIG" granted="true" flags="0" />\
+</package>\n</runtime-permissions>|g' $FILE
+    warning_2
   fi
+done
+ui_print " "
+}
+test_signature() {
+FILE=`find $MODPATH/system -type f -name $APP.apk`
+ui_print "- Testing signature..."
+RES=`pm install -g -i com.android.vending $FILE`
+if [ "$RES" ]; then
+  ui_print "  $RES"
+fi
+if [ "$RES" == Success ]; then
+  RES=`pm uninstall -k $PKG 2>/dev/null`
+  ui_print "  Signature test is passed"
+elif [ -d /data/adb/modules_update/luckypatcher ]\
+|| [ -d /data/adb/modules/luckypatcher ]; then
+  ui_print "  Enabling Patches to Android Lucky Patcher Module..."
+  rm -f /data/adb/modules/luckypatcher/remove
+  rm -f /data/adb/modules/luckypatcher/disable
+elif echo "$RES" | grep -q INSTALL_FAILED_SHARED_USER_INCOMPATIBLE; then
+  ui_print "  Signature test is failed"
+  ui_print "  But installation is allowed for this case"
+  ui_print "  Make sure you have deactivated your Android Signature"
+  ui_print "  Verification, otherwise the app cannot be installed correctly."
+  ui_print "  If you don't know what is it, please READ Troubleshootings!"
+elif echo "$RES" | grep -q INSTALL_FAILED_INSUFFICIENT_STORAGE; then
+  ui_print "  Please free-up your internal storage first!"
+  abort
 else
-  warning_2
+  ui_print "  ! Signature test is failed"
+  ui_print "    You need to disable Signature Verification of your"
+  ui_print "    Android first to use this module. READ Troubleshootings!"
+  if [ "`grep_prop force.install $OPTIONALS`" != 1 ]; then
+    abort
+  fi
 fi
 ui_print " "
+}
+
+# permission
+if [ "$API" -lt 35 ]; then
+  grant_runtime_permissions
+else
+  cp -rf $MODPATH/system_15/* $MODPATH/system
+  rm -rf $MODPATH/system_15
+  APP=Flipendo
+  PKG=com.google.android.flipendo
+  if [ "$BOOTMODE" == true ]; then
+    if ! appops get $PKG > /dev/null 2>&1; then
+      test_signature
+    fi
+  fi
+fi
 
 # overlay
 if [ ! -d /product/overlay ]; then
