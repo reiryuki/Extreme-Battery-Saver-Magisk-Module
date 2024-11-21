@@ -183,9 +183,9 @@ ui_print "  then you need to reinstall this module, reboot,"
 ui_print "  & reinstall again to re-grant permissions."
 }
 warning_2() {
-ui_print "  If there is still crash, then you need to reinstall this"
-ui_print "  module again after reboot to re-grant permissions."
-ui_print "  "
+ui_print "  If there is still crash or android.permission.SUSPEND_APPS"
+ui_print "  is not granted, then you need to reinstall this module again"
+ui_print "  after reboot to re-grant permissions."
 }
 grant_runtime_permissions() {
 ui_print "- Granting permissions"
