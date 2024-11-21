@@ -1,5 +1,5 @@
 # boot mode
-if [ "$BOOTMODE" != true ]; then
+if [ "$BOOTMODE" != true ] && [ "$API" -ge 35 ]; then
   abort "! Please install via Magisk/KernelSU app only!"
 fi
 
