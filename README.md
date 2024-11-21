@@ -28,6 +28,7 @@
 - Reboot
 - If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot afterwards
 - If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot afterwards
+- If android.permission.SUSPEND_APPS is not granted then reinstall the module again and reboot
 - Open Extreme Battery Saver app, tap "When to use", choose "Ask every time" or "Always use"
 - Enable your built-in battery saver (standar AOSP battery saver) and your apps will be paused immediately if "Always use" is choosen
 - Tap the notification that appears if "Ask every time" is choosen to enable the Extreme Battery Saver and your apps will be paused
