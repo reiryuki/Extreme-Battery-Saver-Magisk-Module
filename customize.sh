@@ -129,20 +129,17 @@ sed -i 's|#2||g' $MODPATH/post-fs-data.sh
 }
 permissive() {
 FILE=/sys/fs/selinux/enforce
-SELINUX=`cat $FILE`
-if [ "$SELINUX" == 1 ]; then
-  if ! setenforce 0; then
-    echo 0 > $FILE
-  fi
-  SELINUX=`cat $FILE`
-  if [ "$SELINUX" == 1 ]; then
+FILE2=/sys/fs/selinux/policy
+if [ "`toybox cat $FILE`" = 1 ]; then
+  chmod 640 $FILE
+  chmod 440 $FILE2
+  echo 0 > $FILE
+  if [ "`toybox cat $FILE`" = 1 ]; then
     ui_print "  Your device can't be turned to Permissive state."
     ui_print "  Using Magisk Permissive mode instead."
     permissive_2
   else
-    if ! setenforce 1; then
-      echo 1 > $FILE
-    fi
+    echo 1 > $FILE
     sed -i 's|#1||g' $MODPATH/post-fs-data.sh
   fi
 else
@@ -376,25 +373,20 @@ ui_print " "
 test_signature() {
 FILE=`find $MODPATH/system -type f -name $APP.apk`
 ui_print "- Testing signature..."
-RES=`pm install -g -i com.android.vending $FILE`
+RES=`pm install -g -i com.android.vending $FILE 2>&1`
 if [ "$RES" ]; then
   ui_print "  $RES"
 fi
 if [ "$RES" == Success ]; then
   RES=`pm uninstall -k $PKG 2>/dev/null`
   ui_print "  Signature test is passed"
-elif [ -d /data/adb/modules_update/luckypatcher ]\
-|| [ -d /data/adb/modules/luckypatcher ]; then
-  ui_print "  Enabling Patches to Android Lucky Patcher Module..."
-  rm -f /data/adb/modules/luckypatcher/remove
-  rm -f /data/adb/modules/luckypatcher/disable
 elif echo "$RES" | grep -q INSTALL_FAILED_SHARED_USER_INCOMPATIBLE; then
   ui_print "  Signature test is failed"
   ui_print "  But installation is allowed for this case"
   ui_print "  Make sure you have deactivated your Android Signature"
   ui_print "  Verification, otherwise the app cannot be installed correctly."
   ui_print "  If you don't know what is it, please READ Troubleshootings!"
-elif echo "$RES" | grep -q INSTALL_FAILED_INSUFFICIENT_STORAGE; then
+elif echo "$RES" | grep -Eq 'INSTALL_FAILED_INSUFFICIENT_STORAGE|not enough space'; then
   ui_print "  Please free-up your internal storage first!"
   abort
 else
@@ -424,7 +416,21 @@ else
 fi
 
 # overlay
-if [ ! -d /product/overlay ]; then
+if [ "`grep_prop overlay.location $OPTIONALS`" == odm ]\
+&& [ -d /odm/overlay ]; then
+  if grep /odm /data/adb/magisk/magisk\
+  || grep /odm /data/adb/magisk/magisk64\
+  || grep /odm /data/adb/magisk/magisk32; then
+    ui_print "- Using /odm/overlay/ instead of /product/overlay/"
+    mv -f $MODPATH/system/product $MODPATH/system/odm
+    ui_print " "
+  else
+    ui_print "! Kitsune Mask/Magisk Delta is not installed or"
+    ui_print "  the version doesn't support /odm"
+    ui_print " "
+  fi
+elif [ ! -d /product/overlay ]\
+|| [ "`grep_prop overlay.location $OPTIONALS`" == vendor ]; then
   ui_print "- Using /vendor/overlay/ instead of /product/overlay/"
   mv -f $MODPATH/system/product $MODPATH/system/vendor
   ui_print " "
