@@ -19,11 +19,11 @@
 ## Requirements
 - Android 11 (SDK 30) until 14 (SDK 34)
 - Android 15 (SDK 35) and up with AOSP signatured ROM or disabled Android Signature Verification for non-AOSP sigantured ROM https://t.me/ryukinotes/81
-- Magisk or KernelSU installed
+- Magisk or Kitsune Mask or KernelSU or Apatch installed
 
 ## Installation Guide & Download Link
+- If you are using KernelSU, you need to disable Unmount Modules by Default in KernelSU app settings and install https://github.com/KernelSU-Modules-Repo/meta-overlayfs first
 - Install this module https://www.pling.com/p/1707806/ via Magisk app or KernelSU app only
-- If you are using KernelSU, you need to disable Unmount Modules by Default in KernelSU app settings
 - Reboot
 - If you are using KernelSU, you need to allow superuser list manually all package name listed in package.txt (and your home launcher app also) (enable show system apps) and reboot afterwards
 - If you are using SUList, you need to allow list manually your home launcher app (enable show system apps) and reboot afterwards
